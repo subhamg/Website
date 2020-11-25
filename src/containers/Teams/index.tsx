@@ -41,7 +41,8 @@ const Teams: FC = () => {
       const otherMembers: TeamMember[] = [];
       teamMembers.forEach((member) => {
         const {teams} = member;
-        const matchingTeam = teams.find(({title}) => title.toLowerCase() === teamFilter.toLowerCase());
+        const matchingTeam =
+          teamFilter !== 'All' ? teams.find(({title}) => title.toLowerCase() === teamFilter.toLowerCase()) : member;
         if (matchingTeam) {
           if (matchingTeam.isLead) {
             teamLeads.push({...member, isLead: true});
@@ -50,10 +51,12 @@ const Teams: FC = () => {
           }
         }
       });
+      teamLeads.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      otherMembers.sort((a, b) => a.displayName.localeCompare(b.displayName));
       return teamLeads.concat(otherMembers);
     };
 
-    setFilteredMembers(teamFilter === TeamName.all ? teamMembers : getFilteredMembers());
+    setFilteredMembers(getFilteredMembers());
   }, [teamFilter]);
 
   const handleNavOptionClick = (option: TeamName) => (): void => {
