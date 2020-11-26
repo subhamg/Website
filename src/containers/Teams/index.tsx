@@ -31,9 +31,15 @@ const TEAM_NAME_FILTERS: NavOption[] = [
   {pathname: TeamName.youtube, title: 'YouTube'},
 ];
 
+const TAB_OPTIONS: NavOption[] = [
+  {pathname: 'members', title: 'Members'},
+  {pathname: 'resources', title: 'Resources'},
+];
+
 const Teams: FC = () => {
   const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>(teamMembers);
   const [teamFilter, setTeamFilter] = useState<TeamName>(TeamName.all);
+  const [tabOption, setTabOption] = useState<string>('members');
 
   useEffect(() => {
     const getFilteredMembers = (): TeamMember[] => {
@@ -63,9 +69,24 @@ const Teams: FC = () => {
     setTeamFilter(option);
   };
 
+  const handleTabOptionClick = (option: string) => (): void => {
+    setTabOption(option);
+  };
+
   const renderTeamFilter = (): ReactNode => {
     return (
       <FlatNavLinks handleOptionClick={handleNavOptionClick} options={TEAM_NAME_FILTERS} selectedOption={teamFilter} />
+    );
+  };
+
+  const renderTabOptions = (): ReactNode => {
+    return (
+      <FlatNavLinks
+        className="Teams__tab"
+        handleOptionClick={handleTabOptionClick}
+        options={TAB_OPTIONS}
+        selectedOption={tabOption}
+      />
     );
   };
 
@@ -98,7 +119,10 @@ const Teams: FC = () => {
         />
         <div className="Teams__left-menu">{renderTeamFilter()}</div>
         <div className="Teams__right-list">
-          <h1 className="Teams__team-heading">{teamFilter === TeamName.all ? 'All Contributors' : teamFilter}</h1>
+          <div className="Teams__top-bar">
+            <h1 className="Teams__team-heading">{teamFilter === TeamName.all ? 'All' : teamFilter}</h1>
+            {renderTabOptions()}
+          </div>
           {!filteredMembers.length && <EmptyPage />}
           <div className="Teams__team-list">{renderTeamMembers()}</div>
         </div>
