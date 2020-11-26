@@ -40,6 +40,7 @@ const Teams: FC = () => {
   const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>(teamMembers);
   const [teamFilter, setTeamFilter] = useState<TeamName>(TeamName.all);
   const [tabOption, setTabOption] = useState<string>('members');
+  const [page, setPage] = useState<ReactNode>();
 
   useEffect(() => {
     const getFilteredMembers = (): TeamMember[] => {
@@ -64,6 +65,32 @@ const Teams: FC = () => {
 
     setFilteredMembers(getFilteredMembers());
   }, [teamFilter]);
+
+  useEffect(() => {
+    const getPage = (): ReactNode => {
+      return tabOption === 'members' ? (
+        <div className="Teams__team-list">
+          {filteredMembers.map(
+            ({contributorId, displayName, githubUsername, isLead, payPerDay, profileImage, slackUsername, titles}) => (
+              <TeamMemberCard
+                displayName={displayName}
+                githubUsername={githubUsername}
+                isLead={isLead}
+                key={contributorId}
+                payPerDay={payPerDay}
+                profileImage={profileImage}
+                slackUsername={slackUsername}
+                titles={titles}
+              />
+            ),
+          )}
+        </div>
+      ) : (
+        <p>test lol</p>
+      );
+    };
+    setPage(getPage());
+  }, [tabOption, filteredMembers, teamFilter]);
 
   const handleNavOptionClick = (option: TeamName) => (): void => {
     setTeamFilter(option);
@@ -90,23 +117,6 @@ const Teams: FC = () => {
     );
   };
 
-  const renderTeamMembers = (): ReactNode => {
-    return filteredMembers.map(
-      ({contributorId, displayName, githubUsername, isLead, payPerDay, profileImage, slackUsername, titles}) => (
-        <TeamMemberCard
-          displayName={displayName}
-          githubUsername={githubUsername}
-          isLead={isLead}
-          key={contributorId}
-          payPerDay={payPerDay}
-          profileImage={profileImage}
-          slackUsername={slackUsername}
-          titles={titles}
-        />
-      ),
-    );
-  };
-
   return (
     <>
       <PageTitle title="Teams" />
@@ -124,7 +134,7 @@ const Teams: FC = () => {
             {renderTabOptions()}
           </div>
           {!filteredMembers.length && <EmptyPage />}
-          <div className="Teams__team-list">{renderTeamMembers()}</div>
+          <div className="Teams__content">{page}</div>
         </div>
       </div>
     </>
