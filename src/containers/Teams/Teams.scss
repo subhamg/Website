@@ -23,11 +23,34 @@
     padding: 12px 0 48px;
   }
 
+  &__tab__option {
+    display: inline-block;
+    background: transparent;
+    margin: 0px 40px 0px 0px;
+    padding: 0px 0px 0px 0px;
+    font-weight: 600;
+    font-size: 20px;
+    border-radius: 0px;
+  }
+
+  &__tab__option:hover {
+    background: transparent;
+  }
+
+  &__tab__option--active {
+    border-bottom: 2px black solid;
+  }
+
+  &__top-bar {
+    margin: 0px 0px 20px 40px;
+    border-bottom: 1px solid #e3e8ee;
+    width: 90%;
+  }
+
   &__team-heading {
     font-family: var(--font-family-inter-light);
     font-size: 36px;
     line-height: 1.25;
-    margin: 16px 54px 36px;
   }
 
   &__team-list {
@@ -59,12 +82,6 @@
 
     &__team-list {
       grid-template-columns: auto;
-    }
-  }
-
-  @media (max-width: 768px) {
-    &__team-heading {
-      margin: 16px 42px 36px;
     }
   }
 }

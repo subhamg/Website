@@ -1,36 +1,46 @@
 import React, {FC, ReactNode, useEffect, useState} from 'react';
 
 import {BreadcrumbMenu, EmptyPage, FlatNavLinks, PageTitle} from 'components';
-import {TeamMember, TeamName} from 'types/teams';
 import {getTeamMembers} from 'utils/data';
+import {NavOption} from 'types/option';
+import {TeamMember, TeamName} from 'types/teams';
 
 import TeamMemberCard from './TeamMemberCard';
 import './Teams.scss';
 
 const teamMembers = getTeamMembers();
 
-const TEAM_NAME_FILTERS = [
-  TeamName.all,
-  TeamName.backEndDevelopers,
-  TeamName.community,
-  TeamName.design,
-  TeamName.devOps,
-  TeamName.discordManagers,
-  TeamName.frontEndDevelopers,
-  TeamName.kotlinSDK,
-  TeamName.marketing,
-  TeamName.payments,
-  TeamName.qa,
-  TeamName.redditModerators,
-  TeamName.research,
-  TeamName.security,
-  TeamName.slackManagers,
-  TeamName.youtube,
+const TEAM_NAME_FILTERS: NavOption[] = [
+  {pathname: TeamName.all, title: 'All'},
+  {pathname: TeamName.dotnetCore, title: '.NET Core'},
+  {pathname: TeamName.backEndDevelopers, title: 'Back-End Developers'},
+  {pathname: TeamName.community, title: 'Community'},
+  {pathname: TeamName.design, title: 'Design'},
+  {pathname: TeamName.devOps, title: 'DevOps'},
+  {pathname: TeamName.discordManagers, title: 'Discord Managers'},
+  {pathname: TeamName.frontEndDevelopers, title: 'Front-End Developers'},
+  {pathname: TeamName.kotlinSDK, title: 'Kotlin SDK'},
+  {pathname: TeamName.marketing, title: 'Marketing'},
+  {pathname: TeamName.newUserOperations, title: 'New User Operations'},
+  {pathname: TeamName.payments, title: 'Payments'},
+  {pathname: TeamName.projectProposals, title: 'Project Proposals'},
+  {pathname: TeamName.qa, title: 'QA'},
+  {pathname: TeamName.redditModerators, title: 'Reddit Moderators'},
+  {pathname: TeamName.research, title: 'Research'},
+  {pathname: TeamName.security, title: 'Security'},
+  {pathname: TeamName.youtube, title: 'YouTube'},
+];
+
+const TAB_OPTIONS: NavOption[] = [
+  {pathname: 'members', title: 'Members'},
+  {pathname: 'resources', title: 'Resources'},
 ];
 
 const Teams: FC = () => {
   const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>(teamMembers);
   const [teamFilter, setTeamFilter] = useState<TeamName>(TeamName.all);
+  const [tabOption, setTabOption] = useState<string>('members');
+  const [page, setPage] = useState<ReactNode>();
 
   useEffect(() => {
     const getFilteredMembers = (): TeamMember[] => {
@@ -38,7 +48,8 @@ const Teams: FC = () => {
       const otherMembers: TeamMember[] = [];
       teamMembers.forEach((member) => {
         const {teams} = member;
-        const matchingTeam = teams.find(({title}) => title.toLowerCase() === teamFilter.toLowerCase());
+        const matchingTeam =
+          teamFilter !== 'All' ? teams.find(({title}) => title.toLowerCase() === teamFilter.toLowerCase()) : member;
         if (matchingTeam) {
           if (matchingTeam.isLead) {
             teamLeads.push({...member, isLead: true});
@@ -47,40 +58,62 @@ const Teams: FC = () => {
           }
         }
       });
+      teamLeads.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      otherMembers.sort((a, b) => a.displayName.localeCompare(b.displayName));
       return teamLeads.concat(otherMembers);
     };
 
-    setFilteredMembers(teamFilter === TeamName.all ? teamMembers : getFilteredMembers());
+    setFilteredMembers(getFilteredMembers());
   }, [teamFilter]);
+
+  useEffect(() => {
+    const getPage = (): ReactNode => {
+      return tabOption === 'members' ? (
+        <div className="Teams__team-list">
+          {filteredMembers.map(
+            ({contributorId, displayName, githubUsername, isLead, payPerDay, profileImage, slackUsername, titles}) => (
+              <TeamMemberCard
+                displayName={displayName}
+                githubUsername={githubUsername}
+                isLead={isLead}
+                key={contributorId}
+                payPerDay={payPerDay}
+                profileImage={profileImage}
+                slackUsername={slackUsername}
+                titles={titles}
+              />
+            ),
+          )}
+        </div>
+      ) : (
+        <p>test lol</p>
+      );
+    };
+    setPage(getPage());
+  }, [tabOption, filteredMembers, teamFilter]);
 
   const handleNavOptionClick = (option: TeamName) => (): void => {
     setTeamFilter(option);
   };
 
+  const handleTabOptionClick = (option: string) => (): void => {
+    setTabOption(option);
+  };
+
   const renderTeamFilter = (): ReactNode => {
     return (
-      <FlatNavLinks<TeamName>
-        handleOptionClick={handleNavOptionClick}
-        options={TEAM_NAME_FILTERS}
-        selectedOption={teamFilter}
-      />
+      <FlatNavLinks handleOptionClick={handleNavOptionClick} options={TEAM_NAME_FILTERS} selectedOption={teamFilter} />
     );
   };
 
-  const renderTeamMembers = (): ReactNode => {
-    return filteredMembers.map(
-      ({contributorId, displayName, githubUsername, isLead, payPerDay, profileImage, slackUsername, titles}) => (
-        <TeamMemberCard
-          displayName={displayName}
-          githubUsername={githubUsername}
-          isLead={isLead}
-          key={contributorId}
-          payPerDay={payPerDay}
-          profileImage={profileImage}
-          slackUsername={slackUsername}
-          titles={titles}
-        />
-      ),
+  const renderTabOptions = (): ReactNode => {
+    return (
+      <FlatNavLinks
+        className="Teams__tab"
+        handleOptionClick={handleTabOptionClick}
+        options={TAB_OPTIONS}
+        selectedOption={tabOption}
+      />
     );
   };
 
@@ -96,9 +129,12 @@ const Teams: FC = () => {
         />
         <div className="Teams__left-menu">{renderTeamFilter()}</div>
         <div className="Teams__right-list">
-          <h1 className="Teams__team-heading">{teamFilter === TeamName.all ? 'All Contributors' : teamFilter}</h1>
+          <div className="Teams__top-bar">
+            <h1 className="Teams__team-heading">{teamFilter === TeamName.all ? 'All' : teamFilter}</h1>
+            {renderTabOptions()}
+          </div>
           {!filteredMembers.length && <EmptyPage />}
-          <div className="Teams__team-list">{renderTeamMembers()}</div>
+          <div className="Teams__content">{page}</div>
         </div>
       </div>
     </>
